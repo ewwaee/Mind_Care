@@ -1,11 +1,11 @@
-import 'package:doctor_app_fixed/pages/home.dart';
+
 import 'package:flutter/material.dart';
 
 // Импортируем экраны
 import 'volunteer_page.dart';
 // ignore: unused_import
 import 'psychologist_page.dart'; // или правильный путь
-
+import 'main_clien_page.dart';
 
 
 
@@ -101,7 +101,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       } else if (_selectedRole == 'Client') {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const Home()),
+                          MaterialPageRoute(builder: (context) => MainClientPage()),
                         );
                       } else if (_selectedRole == 'Volunteer') {
                         Navigator.push(
