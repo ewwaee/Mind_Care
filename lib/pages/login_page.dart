@@ -103,7 +103,8 @@ class _LoginPageState extends State<LoginPage> {
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade900,
+                      backgroundColor: const Color(0xFF044C70),
+                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -117,6 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                       }
                     },
                     child: const Text('Sign In'),
+                    
                   ),
                 ),
               ],
@@ -127,3 +129,5 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+
+
