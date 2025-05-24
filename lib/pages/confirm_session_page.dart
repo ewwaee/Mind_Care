@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'login_page.dart';
+import 'main_clien_page.dart';  // Главная страница клиента
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class ConfirmSessionPage extends StatefulWidget {
@@ -19,6 +24,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
 
   List<String> times = ['10:00', '11:00', '12:00', '14:00', '16:00', '18:00'];
 
+  // Функция выбора даты
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final date = await showDatePicker(
@@ -55,11 +61,60 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
           nameController.text.isNotEmpty &&
           phoneController.text.isNotEmpty;
 
+
+  Future<void> _confirmSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token'); // Получаем токен из памяти
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User token is missing, please login again')),
+      );
+      return;
+    }
+
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    final clientName = decodedToken['username'];
+
+    final sessionData = {
+      'psychologistId': widget.psychologist['_id'],
+      'date': selectedDate!.toIso8601String(),
+      'time': selectedTime,
+      'phone': phoneController.text,
+      'concern': concernController.text,
+      'clientName': clientName,
+      'psychologistName': widget.psychologist['username'],  // или 'name'
+    };
+
+    final url = Uri.parse('http://10.0.2.2:3005/sessions');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token,
+      },
+      body: jsonEncode(sessionData),
+    );
+
+    if (response.statusCode == 201) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainClientPage()),
+      );
+    } else {
+      print('Error: ${response.body}'); // Для отладки
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to confirm session')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Confirm your session', style: TextStyle(fontFamily: 'InclusiveSans')),
+        title: Text('Confirm your session'),
         leading: BackButton(),
         backgroundColor: Color(0xFF174754),
       ),
@@ -68,16 +123,17 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Session details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'InclusiveSans')),
+            Text('Session details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
 
             SizedBox(height: 8),
 
+            // Выбор времени
             Wrap(
               spacing: 8,
               children: times.map((time) {
                 final isSelected = time == selectedTime;
                 return ChoiceChip(
-                  label: Text(time, style: TextStyle(fontFamily: 'InclusiveSans')),
+                  label: Text(time),
                   selected: isSelected,
                   onSelected: (_) {
                     setState(() {
@@ -90,6 +146,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
 
             SizedBox(height: 16),
 
+            // Выбор даты
             GestureDetector(
               onTap: _pickDate,
               child: Container(
@@ -102,9 +159,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formattedDate,
-                      style: TextStyle(fontSize: 16, color: selectedDate == null ? Colors.grey : Colors.black, fontFamily: 'InclusiveSans'),
-                    ),
+                    Text(formattedDate, style: TextStyle(fontSize: 16, color: selectedDate == null ? Colors.grey : Colors.black)),
                     Icon(Icons.calendar_today, color: Color(0xFF174754)),
                   ],
                 ),
@@ -113,6 +168,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
 
             SizedBox(height: 20),
 
+            // Профиль психолога
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -127,29 +183,30 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.psychologist['name'], style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'InclusiveSans')),
-                        Text(widget.psychologist['description'], style: TextStyle(fontFamily: 'InclusiveSans')),
+                        Text(widget.psychologist['name'], style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(widget.psychologist['description']),
                       ],
                     ),
                   ),
-                  Text('${widget.psychologist['experience']} years', style: TextStyle(fontFamily: 'InclusiveSans')),
+                  Text('${widget.psychologist['experience']} years'),
                 ],
               ),
             ),
 
             SizedBox(height: 16),
 
+            // Поле для имени
             TextField(
               controller: nameController,
               decoration: InputDecoration(
                 labelText: "Your Name",
                 border: OutlineInputBorder(),
               ),
-              style: TextStyle(fontFamily: 'InclusiveSans'),
             ),
 
             SizedBox(height: 16),
 
+            // Поле для номера телефона
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
@@ -157,11 +214,11 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 labelText: "Phone Number",
                 border: OutlineInputBorder(),
               ),
-              style: TextStyle(fontFamily: 'InclusiveSans'),
             ),
 
             SizedBox(height: 16),
 
+            // Поле для комментариев
             TextField(
               controller: concernController,
               maxLines: 4,
@@ -169,37 +226,18 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 hintText: 'Feel free to share your emotion and thoughts here',
                 border: OutlineInputBorder(),
               ),
-              style: TextStyle(fontFamily: 'InclusiveSans'),
             ),
 
             SizedBox(height: 8),
 
-            Text('After confirmation you will get message with zoom link', style: TextStyle(fontFamily: 'InclusiveSans')),
+            Text('After confirmation you will get message with zoom link'),
 
             SizedBox(height: 16),
 
+            // Кнопка подтверждения записи
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF174754),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 14),
-              ),
-              onPressed: isFormValid
-                  ? () {
-                final session = {
-                  'date': formattedDate,
-                  'time': selectedTime,
-                  'name': nameController.text,
-                  'phone': phoneController.text,
-                  'concern': concernController.text,
-                  'psychologist': widget.psychologist,
-                };
-                Navigator.pop(context, session);
-              }
-                  : null,
-              child: Text('Confirm session', style: TextStyle(fontSize: 16, fontFamily: 'InclusiveSans')),
+              onPressed: isFormValid ? _confirmSession : null,
+              child: Text('Confirm session'),
             ),
           ],
         ),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'welcome_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';  // Импортируем для хранения токена
+import 'main_clien_page.dart'; // Главная страница после успешного логина
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,26 +13,51 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController(); // Для телефона
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  // Функция для отправки данных на сервер (логин)
+  Future<void> loginUser() async {
+    final url = Uri.parse('http://10.0.2.2:3005/login'); // Адрес вашего сервера Node.js
+
+    // Отправка запроса на сервер
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'phone': _phoneController.text, // Отправляем номер телефона
+        'password': _passwordController.text,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Если логин успешен, переход на главную страницу
+      final data = jsonDecode(response.body);
+
+
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString('token', data['token']);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login successful!')),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainClientPage()),
+      );
+    } else {
+      // Если ошибка при логине
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login failed: ${response.body}')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.edit), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.send), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.note), label: ''),
-        ],
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -53,10 +81,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                const Text('Your email:'),
+                const Text('Your phone number:'), // Изменяем на номер телефона
                 const SizedBox(height: 8),
                 TextFormField(
-                  controller: _emailController,
+                  controller: _phoneController,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.lightBlue.shade100,
@@ -66,8 +94,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || !value.contains('@')) {
-                      return 'Enter a valid email';
+                    if (value == null || value.length < 10) {
+                      return 'Enter a valid phone number';
                     }
                     return null;
                   },
@@ -111,14 +139,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const WelcomePage()),
-                        );
+                        loginUser(); // Вызываем функцию логина
                       }
                     },
                     child: const Text('Sign In'),
-                    
                   ),
                 ),
               ],
@@ -129,5 +153,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-

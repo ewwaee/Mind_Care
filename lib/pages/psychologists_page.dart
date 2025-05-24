@@ -1,39 +1,48 @@
 import 'package:flutter/material.dart';
-import 'confirm_session_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'PsychologistProfilePage.dart'; // Профиль психолога
 
-class PsychologistsPage extends StatelessWidget {
-  final List<Map<String, dynamic>> psychologists = [
-    {
-      'name': 'Dinara Satybayeva',
-      'experience': 3,
-      'description': '15 y. experience, Gestalt psychologist',
-      'rating': 4.85,
-    },
-    {
-      'name': 'Dinara Satybayeva',
-      'experience': 10,
-      'description': '15 y. experience, Gestalt psychologist',
-      'rating': 5.00,
-    },
-    {
-      'name': 'Dinara Satybayeva',
-      'experience': 7,
-      'description': '15 y. experience, Gestalt psychologist',
-      'rating': 3.10,
-    },
-    {
-      'name': 'Dinara Satybayeva',
-      'experience': 6,
-      'description': '15 y. experience, Gestalt psychologist',
-      'rating': 4.55,
-    },
-    {
-      'name': 'Dinara Satybayeva',
-      'experience': 5,
-      'description': '15 y. experience, Gestalt psychologist',
-      'rating': 1.00,
-    },
-  ];
+class PsychologistsPage extends StatefulWidget {
+  @override
+  _PsychologistsPageState createState() => _PsychologistsPageState();
+}
+
+class _PsychologistsPageState extends State<PsychologistsPage> {
+  List<Map<String, dynamic>> psychologists = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPsychologists();  // Загрузка психологов из БД
+  }
+
+  // Функция для загрузки психологов из базы данных
+  Future<void> fetchPsychologists() async {
+    final url = Uri.parse('http://10.0.2.2:3005/psychologists'); // Адрес сервера для получения списка психологов
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      setState(() {
+        psychologists = data.map((psych) {
+          return {
+            '_id': psych['_id'],  // Добавь это
+            'name': psych['username'],
+            'experience': psych['experience'],
+            'description': psych['specialization'],
+            'rating': psych['rating'] ?? 0.0,
+          };
+
+        }).toList();
+      });
+    } else {
+      // Обработка ошибки при запросе
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load psychologists')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +51,9 @@ class PsychologistsPage extends StatelessWidget {
         title: Text('Find your Psychologist'),
         leading: BackButton(),
       ),
-      body: ListView.builder(
+      body: psychologists.isEmpty
+          ? Center(child: CircularProgressIndicator()) // Индикатор загрузки, если психологи еще не загружены
+          : ListView.builder(
         itemCount: psychologists.length,
         itemBuilder: (context, index) {
           final psych = psychologists[index];
@@ -55,12 +66,12 @@ class PsychologistsPage extends StatelessWidget {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(psych['description']),
+                  Text(psych['description']), // Специализация психолога
                   Row(
                     children: [
                       Icon(Icons.star, size: 16, color: Colors.amber),
                       SizedBox(width: 5),
-                      Text(psych['rating'].toString()),
+                      Text(psych['rating'].toString()), // Рейтинг психолога
                     ],
                   ),
                 ],
@@ -72,16 +83,16 @@ class PsychologistsPage extends StatelessWidget {
                   Text('of experience'),
                 ],
               ),
-              onTap: () async {
-                final session = await Navigator.push(
+              onTap: () {
+                // Переход на страницу профиля психолога
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ConfirmSessionPage(psychologist: psych),
+                    builder: (context) => PsychologistProfilePage(
+                      psychologist: psych, // Передаем данные психолога
+                    ),
                   ),
                 );
-                if (session != null) {
-                  Navigator.pop(context, session);
-                }
               },
             ),
           );

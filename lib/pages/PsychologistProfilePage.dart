@@ -1,110 +1,93 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'confirm_session_page.dart'; // Import the ConfirmSessionPage
 
 class PsychologistProfilePage extends StatelessWidget {
-  final String name;
-  final String gender;
-  final String email;
-  final String specialization;
-  final List<String> documents;
-  final List<String> clients;
-  final List<String> sessions;
+  final Map<String, dynamic> psychologist;
 
-  const PsychologistProfilePage({
-    super.key,
-    required this.name,
-    required this.gender,
-    required this.email,
-    required this.specialization,
-    required this.documents,
-    required this.clients,
-    required this.sessions,
-  });
-
-  Widget sectionCard(String title, List<String> items) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                )),
-            const SizedBox(height: 8),
-            ...items.map((item) => Row(
-                  children: [
-                    const Icon(Icons.circle, size: 8),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(item)),
-                  ],
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget profileRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.blueAccent),
-        const SizedBox(width: 10),
-        Text(
-          "$label: ",
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(color: Colors.black87),
-          ),
-        ),
-      ],
-    );
-  }
+  PsychologistProfilePage({required this.psychologist});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("Профиль Психолога"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Color(0xFF3B6F8C), // Matching background color
+        title: Text('${psychologist['name']}\'s Profile'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Заголовок
-            const Center(
+            // Profile Picture
+            Center(
               child: CircleAvatar(
-                radius: 45,
-                backgroundColor: Colors.blueAccent,
-                child: Icon(FontAwesomeIcons.userDoctor,
-                    size: 40, color: Colors.white),
+                radius: 60,
+                backgroundColor: Color(0xFF9FB6C6),
+                child: Icon(Icons.person, size: 50, color: Colors.white),
               ),
             ),
-            const SizedBox(height: 20),
-            profileRow(Icons.person, "Имя", name),
-            const SizedBox(height: 10),
-            profileRow(Icons.wc, "Пол", gender),
-            const SizedBox(height: 10),
-            profileRow(Icons.email, "Email", email),
-            const SizedBox(height: 10),
-            profileRow(Icons.psychology, "Специализация", specialization),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
-            // Блоки-карточки
-            sectionCard("Документы", documents),
-            sectionCard("Клиенты", clients),
-            sectionCard("Сессии", sessions),
+            // Psychologist Name and Rating
+            Text(
+              psychologist['name'],
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1B1B1B),
+              ),
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.star, color: Colors.amber, size: 16),
+                SizedBox(width: 5),
+                Text(
+                  '${psychologist['rating']}',
+                  style: TextStyle(fontSize: 18, color: Color(0xFF1B1B1B)),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+
+            // Psychologist Experience
+            Text(
+              'Experience: ${psychologist['experience']} years',
+              style: TextStyle(fontSize: 18, color: Color(0xFF1B1B1B)),
+            ),
+            SizedBox(height: 8),
+
+            // Psychologist Description
+            Text(
+              'Description: ${psychologist['description']}',
+              style: TextStyle(fontSize: 18, color: Color(0xFF1B1B1B)),
+            ),
+            SizedBox(height: 30),
+
+            // Schedule Consultation Button
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF3B6F8C), // Button color
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ConfirmSessionPage(psychologist: psychologist),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Schedule Consultation',
+                  style: TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ),
+            ),
           ],
         ),
       ),
