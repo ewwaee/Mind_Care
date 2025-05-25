@@ -111,7 +111,7 @@ class _BlogPageState extends State<BlogPage> {
                       ),
                       child: Text(
                         expanded[index] ? 'Скрыть...' : 'Раскрыть...',
-                        style: TextStyle(color: Colors.black54),
+                        style: const TextStyle(color: Colors.black54),
                       ),
                     ),
                   ),
