@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';  // Импортируем для хранения токена
 import 'main_clien_page.dart'; // Главная страница после успешного логина
-
+import 'Main_Psychologist_Page.dart';
+import 'MainVolunteerPage.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -42,10 +43,14 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful!')),
       );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MainClientPage()),
-      );
+      if (data['role'] == 'Client') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainClientPage()));
+      } else if (data['role'] == 'Psychologist') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainPsychologistPage()));
+      } else if (data['role'] == 'Volunteer') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainVolunteerPage()));
+      }
+
     } else {
       // Если ошибка при логине
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,165 +1,204 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:intl/intl.dart';  // Для форматирования даты
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:intl/intl.dart';
 
-import 'psychologists_page.dart';
-import 'blogpage.dart';
-import 'SessionDetailsPage.dart';
-import 'welcome_page.dart';
+import 'Schedule_Page.dart';  // Импорт страницы расписания
 
-class HomeScreen extends StatelessWidget {
-final String name;
-
-const psychologist_home_page.dart({super.key, required this.name});
-
-@override
-Widget build(BuildContext context) {
-return Scaffold(
-backgroundColor: const Color(0xFFF8F7FA),
-body: SafeArea(
-child: SingleChildScrollView(
-padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-child: Column(
-crossAxisAlignment: CrossAxisAlignment.start,
-children: [
-_buildGreeting(name),
-const SizedBox(height: 20),
-_buildSectionTitle("Upcoming sessions"),
-const SizedBox(height: 10),
-_buildSessionCard("Dinara Satybayeva", "15 y. experience, Gestalt psychologist"),
-const SizedBox(height: 30),
-_buildWriteArticleButton(),
-const SizedBox(height: 20),
-_buildArticleCard("my article anananan"),
-const SizedBox(height: 10),
-_buildArticleCard("my article anananan"),
-const SizedBox(height: 30),
-_buildSectionTitle("Upcoming sessions"),
-const SizedBox(height: 10),
-_buildSessionCard("Dinara Satybayeva", "15 y. experience, Gestalt psychologist"),
-const SizedBox(height: 10),
-_buildSessionCard("Dinara Satybayeva", "15 y. experience, Gestalt psychologist"),
-const SizedBox(height: 30),
-_buildSectionTitle("AI chat"),
-const SizedBox(height: 10),
-_buildChatButton(context),
-],
-),
-),
-),
-);
+class MainPsychologistPage extends StatefulWidget {
+  @override
+  _MainPsychologistPageState createState() => _MainPsychologistPageState();
 }
 
-Widget _buildGreeting(String name) {
-return Row(
-children: [
-const CircleAvatar(
-radius: 20,
-backgroundColor: Colors.grey,
-child: Icon(Icons.person, color: Colors.white),
-),
-const SizedBox(width: 12),
-Text(
-"Good morning, $name!",
-style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-),
-],
-);
-}
+class _MainPsychologistPageState extends State<MainPsychologistPage> {
+  String? username;
 
-Widget _buildSectionTitle(String title) {
-return Text(
-title,
-style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-);
-}
+  List<Map<String, dynamic>> upcomingSessions = [
+    {
+      'clientName': 'Aselka Alibekova',
+      'clientInfo': 'Client, 22 years old',
+      'time': '12:00',
+      'date': DateTime.now().add(Duration(days: 4)),
+    },
+  ];
 
-Widget _buildSessionCard(String name, String details) {
-return Card(
-color: const Color(0xFFBFD7EA),
-shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-child: Padding(
-padding: const EdgeInsets.all(12),
-child: Row(
-children: [
-const CircleAvatar(
-radius: 24,
-backgroundColor: Colors.black54,
-child: Icon(Icons.person, color: Colors.white),
-),
-const SizedBox(width: 12),
-Expanded(
-child: Column(
-crossAxisAlignment: CrossAxisAlignment.start,
-children: [
-Text(name,
-style: const TextStyle(
-fontSize: 16, fontWeight: FontWeight.bold)),
-const SizedBox(height: 4),
-Text(details,
-style: const TextStyle(
-fontSize: 14, color: Colors.black87)),
-],
-),
-),
-],
-),
-),
-);
-}
+  @override
+  void initState() {
+    super.initState();
+    fetchUsername();
+  }
 
-Widget _buildWriteArticleButton() {
-return Center(
-child: ElevatedButton(
-onPressed: () {},
-style: ElevatedButton.styleFrom(
-backgroundColor: Colors.indigo[800],
-padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-shape: RoundedRectangleBorder(
-borderRadius: BorderRadius.circular(10)),
-),
-child: const Text("write new articles",
-style: TextStyle(fontSize: 16, color: Colors.white)),
-),
-);
-}
+  Future<void> fetchUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token != null) {
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        final Map<String, dynamic> payloadMap = json.decode(payload);
+        setState(() {
+          username = payloadMap['username'];
+        });
+      }
+    }
+  }
 
-Widget _buildArticleCard(String title) {
-return Card(
-color: const Color(0xFFDBE2EF),
-shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-child: Padding(
-padding: const EdgeInsets.all(14),
+  Widget buildActionCard(String title, String buttonText, VoidCallback onPressed) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Color(0xFF9FB6C6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontSize: 16, color: Colors.black87)),
+          SizedBox(height: 12),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF2F4179),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            ),
+            onPressed: onPressed,
+            child: Text(buttonText, style: TextStyle(fontSize: 14)),
+          )
+        ],
+      ),
+    );
+  }
 
-child: Text(
-title,
-style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-),
-),
-);
-}
+  Widget buildSessionCard(Map<String, dynamic> session) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Color(0xFF9FB6C6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Color(0xFF7592A7),
+            child: Icon(Icons.person, color: Colors.white, size: 32),
+          ),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(session['clientName'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(session['clientInfo'], style: TextStyle(fontSize: 12, color: Colors.black87)),
+                Text(session['time'], style: TextStyle(fontSize: 14, color: Colors.black87)),
+              ],
+            ),
+          ),
+          Text(
+            DateFormat('d\nMMM').format(session['date']),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+        ],
+      ),
+    );
+  }
 
-Widget _buildChatButton(BuildContext context) {
-return Center(
-child: ElevatedButton.icon(
-onPressed: () {
-Navigator.push(
-context,
-MaterialPageRoute(builder: (_) => const ChatPage()),
-);
-},
-style: ElevatedButton.styleFrom(
-backgroundColor: Colors.indigo[100],
-foregroundColor: Colors.indigo[900],
-shape:
-RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-),
-icon: const Icon(Icons.chat),
-label: const Text("Open AI Chat"),
-),
-);
-}
+  Widget buildGreeting() {
+    final cardColor1 = Color(0xFF9FB6C6);
+    final textColor2 = Colors.white;
+    final textColor1 = Color(0xFF1B1B1B);
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 20),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor1,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Color(0xFF7592A7),
+            child: Icon(Icons.person, color: textColor2, size: 32),
+          ),
+          SizedBox(width: 16),
+          Text(
+            'Good morning, ${username ?? 'Psychologist'}!',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: textColor1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor1 = Color(0xFF1B1B1B);
+
+    return Scaffold(
+      backgroundColor: Color(0xFFF3F6F9),
+      appBar: AppBar(
+        backgroundColor: Color(0xFF9FB6C6),
+        title: Text('Dashboard'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildGreeting(),
+
+            buildActionCard(
+              'Manage your schedule and appointments.',
+              'Go to Schedule',
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SchedulePage()),
+                );
+              },
+            ),
+
+            buildActionCard(
+              'Review client requests and manage consultations.',
+              'View Requests',
+                  () {
+                // Навигация к странице запросов
+              },
+            ),
+
+            buildActionCard(
+              'Write articles and share your expertise.',
+              'Write Article',
+                  () {
+                // Навигация к редактору статей
+              },
+            ),
+
+            SizedBox(height: 20),
+            Text('Upcoming sessions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor1)),
+
+            Expanded(
+              child: ListView(
+                children: upcomingSessions.map(buildSessionCard).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
