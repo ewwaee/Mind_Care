@@ -18,6 +18,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   String? selectedTime;
   DateTime? selectedDate = DateTime.now();
   final TextEditingController concernController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
   Map<String, List<String>> availableSlots = {};
@@ -26,7 +27,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   @override
   void initState() {
     super.initState();
-    fetchAvailableSlots();
+    fetchAvailableSlots(); // загрузить расписание при старте
   }
 
   Future<void> fetchAvailableSlots() async {
@@ -56,6 +57,9 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
         timesForSelectedDate = availableSlots[dateKey] ?? [];
       }
 
+      print('Available slots: $availableSlots');
+      print('Slots for selected date (${DateFormat('yyyy-MM-dd').format(selectedDate!)}): $timesForSelectedDate');
+
       setState(() {});
     } else {
       print('Failed to load available slots, status: ${response.statusCode}');
@@ -74,25 +78,31 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       setState(() {
         selectedDate = date;
         selectedTime = null;
-        timesForSelectedDate = availableSlots[DateFormat('yyyy-MM-dd').format(date)] ?? [];
       });
+      await fetchAvailableSlots(); // обновить расписание при смене даты
     }
+  }
+
+  String get formattedDate {
+    if (selectedDate == null) return "Choose Date";
+    return "${selectedDate!.day.toString().padLeft(2, '0')} ${_monthName(selectedDate!.month)} ${selectedDate!.year}";
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
   }
 
   bool get isFormValid =>
       selectedTime != null &&
       selectedDate != null &&
-      phoneController.text.trim().isNotEmpty &&
-      concernController.text.trim().isNotEmpty;
+      nameController.text.isNotEmpty &&
+      phoneController.text.isNotEmpty;
 
   Future<void> _confirmSession() async {
-    if (!isFormValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill all required fields')),
-      );
-      return;
-    }
-
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
@@ -103,12 +113,17 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       return;
     }
 
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+    final clientName = decodedToken['username'];
+
     final sessionData = {
       'psychologistId': widget.psychologist['_id'],
       'date': selectedDate!.toIso8601String(),
       'time': selectedTime,
-      'phone': phoneController.text.trim(),
-      'concern': concernController.text.trim(),
+      'phone': phoneController.text,
+      'concern': concernController.text,
+      'clientName': clientName,
+      'psychologistName': widget.psychologist['username'],
     };
 
     final url = Uri.parse('http://10.0.2.2:3005/sessions');
@@ -128,9 +143,9 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
         MaterialPageRoute(builder: (context) => MainClientPage()),
       );
     } else {
-      print('Error response body: ${response.body}');
+      print('Error: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to confirm session: ${response.body}')),
+        SnackBar(content: Text('Failed to confirm session')),
       );
     }
   }
@@ -162,12 +177,10 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      selectedDate == null ? "Choose Date" : "${selectedDate!.day.toString().padLeft(2, '0')} ${_monthName(selectedDate!.month)} ${selectedDate!.year}",
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: selectedDate == null ? Colors.grey : Colors.black),
-                    ),
+                    Text(formattedDate,
+                        style: TextStyle(
+                            fontSize: 16,
+                            color: selectedDate == null ? Colors.grey : Colors.black)),
                     Icon(Icons.calendar_today, color: Color(0xFF174754)),
                   ],
                 ),
@@ -223,6 +236,14 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
             ),
             SizedBox(height: 16),
             TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: "Your Name",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 16),
+            TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
@@ -251,14 +272,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       ),
     );
   }
-
-  String _monthName(int month) {
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    return months[month - 1];
-  }
 }
+
 
 

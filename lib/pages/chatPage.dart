@@ -1,7 +1,8 @@
 // ignore_for_file: file_names
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'huggingface_service.dart';
+import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -12,13 +13,44 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-  final HuggingFaceService _huggingFaceService = HuggingFaceService();
 
   final List<Map<String, String>> messages = [
     {'role': 'assistant', 'content': 'Привет! Я здесь, чтобы выговориться и помочь ❤️'},
   ];
 
   bool isLoading = false;
+
+  final String apiKey = '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';
+  final String model = 'microsoft/DialoGPT-medium';
+
+  Future<String> sendMessageToAPI(String message) async {
+    final url = Uri.parse('https://api-inference.huggingface.co/models/$model');
+
+    final prompt = "Ты добрый и понимающий психолог. Ответь поддерживающе и с эмпатией: $message";
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'inputs': prompt}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data is List && data.isNotEmpty && data[0]['generated_text'] != null) {
+        return data[0]['generated_text'];
+      } else if (data is Map && data['generated_text'] != null) {
+        return data['generated_text'];
+      } else {
+        return 'Извините, не смог ответить.';
+      }
+    } else {
+      return 'Ошибка сервера: ${response.statusCode}';
+    }
+  }
 
   void _sendMessage() async {
     final userMessage = _controller.text.trim();
@@ -30,7 +62,7 @@ class _ChatPageState extends State<ChatPage> {
       isLoading = true;
     });
 
-    final reply = await _huggingFaceService.sendMessage(userMessage);
+    final reply = await sendMessageToAPI(userMessage);
 
     setState(() {
       messages.add({'role': 'assistant', 'content': reply});
@@ -130,6 +162,7 @@ class _ChatPageState extends State<ChatPage> {
                           hintText: 'Напиши сюда...',
                           border: InputBorder.none,
                         ),
+                        onSubmitted: (_) => _sendMessage(),
                       ),
                     ),
                   ),
@@ -144,13 +177,11 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
             ),
-
-            // Bottom nav bar icons
-            
           ],
         ),
       ),
     );
   }
 }
+
 
