@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'login_page.dart';
-import 'main_clien_page.dart';  // Главная страница клиента
+import 'main_clien_page.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:intl/intl.dart';
 
 class ConfirmSessionPage extends StatefulWidget {
   final Map<String, dynamic> psychologist;
@@ -19,12 +18,56 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   String? selectedTime;
   DateTime? selectedDate;
   final TextEditingController concernController = TextEditingController();
-  final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
-  List<String> times = ['10:00', '11:00', '12:00', '14:00', '16:00', '18:00'];
+  Map<String, List<String>> availableSlots = {};
+  List<String> timesForSelectedDate = [];
 
-  // Функция выбора даты
+  @override
+  void initState() {
+    super.initState();
+    fetchAvailableSlots();
+  }
+
+  Future<void> fetchAvailableSlots() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      print('Token is null, user should login');
+      return;
+    }
+
+    final url = Uri.parse('http://10.0.2.2:3005/psychologist-schedule/${widget.psychologist['_id']}');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> slotsJson = jsonDecode(response.body);
+      availableSlots = slotsJson.map((key, value) => MapEntry(key, List<String>.from(value)));
+
+      if (availableSlots.isNotEmpty) {
+        String firstDateKey = availableSlots.keys.first;
+        selectedDate = DateTime.parse(firstDateKey);
+        timesForSelectedDate = availableSlots[firstDateKey]!;
+        selectedTime = timesForSelectedDate.isNotEmpty ? timesForSelectedDate[0] : null;
+      } else {
+        selectedDate = null;
+        timesForSelectedDate = [];
+        selectedTime = null;
+      }
+
+      setState(() {});
+    } else {
+      print('Failed to load available slots, status: ${response.statusCode}');
+    }
+  }
+
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final date = await showDatePicker(
@@ -36,35 +79,27 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     if (date != null) {
       setState(() {
         selectedDate = date;
+        timesForSelectedDate = availableSlots[DateFormat('yyyy-MM-dd').format(date)] ?? [];
+        selectedTime = timesForSelectedDate.isNotEmpty ? timesForSelectedDate[0] : null;
       });
     }
-  }
-
-  String get formattedDate {
-    if (selectedDate == null) return "Choose Date";
-    return "${selectedDate!.day.toString().padLeft(2, '0')} "
-        "${_monthName(selectedDate!.month)} "
-        "${selectedDate!.year}";
-  }
-
-  String _monthName(int month) {
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    return months[month - 1];
   }
 
   bool get isFormValid =>
       selectedTime != null &&
           selectedDate != null &&
-          nameController.text.isNotEmpty &&
-          phoneController.text.isNotEmpty;
-
+          phoneController.text.trim().isNotEmpty;
 
   Future<void> _confirmSession() async {
+    if (!isFormValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token'); // Получаем токен из памяти
+    final token = prefs.getString('token');
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,17 +108,12 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       return;
     }
 
-    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-    final clientName = decodedToken['username'];
-
     final sessionData = {
       'psychologistId': widget.psychologist['_id'],
-      'date': selectedDate!.toIso8601String(),
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate!),
       'time': selectedTime,
-      'phone': phoneController.text,
-      'concern': concernController.text,
-      'clientName': clientName,
-      'psychologistName': widget.psychologist['username'],  // или 'name'
+      'phone': phoneController.text.trim(),
+      'concern': concernController.text.trim(),
     };
 
     final url = Uri.parse('http://10.0.2.2:3005/sessions');
@@ -92,7 +122,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': token,
+        'Authorization': 'Bearer $token',
       },
       body: jsonEncode(sessionData),
     );
@@ -100,12 +130,15 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     if (response.statusCode == 201) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainClientPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainClientPage(),
+        ),
       );
+
     } else {
-      print('Error: ${response.body}'); // Для отладки
+      print('Error response body: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to confirm session')),
+        SnackBar(content: Text('Failed to confirm session: ${response.body}')),
       );
     }
   }
@@ -124,29 +157,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Session details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-
             SizedBox(height: 8),
-
-            // Выбор времени
-            Wrap(
-              spacing: 8,
-              children: times.map((time) {
-                final isSelected = time == selectedTime;
-                return ChoiceChip(
-                  label: Text(time),
-                  selected: isSelected,
-                  onSelected: (_) {
-                    setState(() {
-                      selectedTime = time;
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-
-            SizedBox(height: 16),
-
-            // Выбор даты
             GestureDetector(
               onTap: _pickDate,
               child: Container(
@@ -159,16 +170,41 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formattedDate, style: TextStyle(fontSize: 16, color: selectedDate == null ? Colors.grey : Colors.black)),
+                    Text(
+                      selectedDate == null ? "Choose Date" : "${selectedDate!.day.toString().padLeft(2, '0')} ${_monthName(selectedDate!.month)} ${selectedDate!.year}",
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: selectedDate == null ? Colors.grey : Colors.black),
+                    ),
                     Icon(Icons.calendar_today, color: Color(0xFF174754)),
                   ],
                 ),
               ),
             ),
-
-            SizedBox(height: 20),
-
-            // Профиль психолога
+            SizedBox(height: 16),
+            timesForSelectedDate.isEmpty
+                ? Text(
+              selectedDate == null
+                  ? 'Please select a date to see available times'
+                  : 'No available slots for this date',
+              style: TextStyle(color: Colors.red),
+            )
+                : Wrap(
+              spacing: 8,
+              children: timesForSelectedDate.map((time) {
+                final isSelected = time == selectedTime;
+                return ChoiceChip(
+                  label: Text(time),
+                  selected: isSelected,
+                  onSelected: (_) {
+                    setState(() {
+                      selectedTime = time;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -183,7 +219,8 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.psychologist['name'], style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(widget.psychologist['name'],
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         Text(widget.psychologist['description']),
                       ],
                     ),
@@ -192,21 +229,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 ],
               ),
             ),
-
             SizedBox(height: 16),
-
-            // Поле для имени
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: "Your Name",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            SizedBox(height: 16),
-
-            // Поле для номера телефона
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
@@ -215,10 +238,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             SizedBox(height: 16),
-
-            // Поле для комментариев
             TextField(
               controller: concernController,
               maxLines: 4,
@@ -227,14 +247,9 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 border: OutlineInputBorder(),
               ),
             ),
-
             SizedBox(height: 8),
-
             Text('After confirmation you will get message with zoom link'),
-
             SizedBox(height: 16),
-
-            // Кнопка подтверждения записи
             ElevatedButton(
               onPressed: isFormValid ? _confirmSession : null,
               child: Text('Confirm session'),
@@ -243,5 +258,13 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
         ),
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
   }
 }

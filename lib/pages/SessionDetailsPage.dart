@@ -17,7 +17,7 @@ Future<void> connectToMongoDB(Map<String, dynamic> session) async {
 class SessionDetailsPage extends StatelessWidget {
   final Map<String, dynamic> session;
 
-  const SessionDetailsPage({Key? key, required this.session}) : super(key: key);
+  const SessionDetailsPage({super.key, required this.session});
 
   @override
   Widget build(BuildContext context) {

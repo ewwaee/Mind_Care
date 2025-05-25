@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -11,21 +12,15 @@ class MainPsychologistPage extends StatefulWidget {
 }
 
 class _MainPsychologistPageState extends State<MainPsychologistPage> {
-  String? username;
-
-  List<Map<String, dynamic>> upcomingSessions = [
-    {
-      'clientName': 'Aselka Alibekova',
-      'clientInfo': 'Client, 22 years old',
-      'time': '12:00',
-      'date': DateTime.now().add(Duration(days: 4)),
-    },
-  ];
+  String username = '';  // Изначально пустая строка
+  List<Map<String, dynamic>> upcomingSessions = [];
+  bool isLoadingSessions = true;
 
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    fetchUpcomingSessions();
   }
 
   Future<void> fetchUsername() async {
@@ -37,10 +32,50 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
         final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
         final Map<String, dynamic> payloadMap = json.decode(payload);
         setState(() {
-          username = payloadMap['username'];
+          username = payloadMap['username'] ?? '';
         });
       }
     }
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  Future<void> fetchUpcomingSessions() async {
+    final token = await getToken();
+    if (token == null) return;
+
+    final url = Uri.parse('http://10.0.2.2:3005/psychologist/upcoming-sessions');
+    final response = await http.get(url, headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    });
+
+    if (response.statusCode == 200) {
+      final List<dynamic> sessionsJson = jsonDecode(response.body);
+      setState(() {
+        upcomingSessions = sessionsJson.cast<Map<String, dynamic>>();
+        isLoadingSessions = false;
+      });
+    } else {
+      setState(() {
+        isLoadingSessions = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load upcoming sessions')),
+      );
+    }
+  }
+
+  void goToClientProfile(String clientId) {
+    // Здесь надо реализовать переход на профиль клиента
+    // Например, если есть страница ClientProfilePage:
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ClientProfilePage(clientId: clientId)),
+    );
   }
 
   Widget buildActionCard(String title, String buttonText, VoidCallback onPressed) {
@@ -74,6 +109,12 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
   }
 
   Widget buildSessionCard(Map<String, dynamic> session) {
+    final client = session['clientId'] ?? {};
+    final clientName = client['username'] ?? 'Unknown client';
+    final clientInfo = client['phone'] ?? '';
+    final date = DateTime.parse(session['date']);
+    final time = session['time'] ?? '';
+
     return Container(
       width: double.infinity,
       margin: EdgeInsets.symmetric(vertical: 6),
@@ -94,16 +135,16 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(session['clientName'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(session['clientInfo'], style: TextStyle(fontSize: 12, color: Colors.black87)),
-                Text(session['time'], style: TextStyle(fontSize: 14, color: Colors.black87)),
+                Text(clientName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(clientInfo, style: TextStyle(fontSize: 12, color: Colors.black87)),
+                Text('$time, ${DateFormat('d MMM yyyy').format(date)}',
+                    style: TextStyle(fontSize: 14, color: Colors.black87)),
               ],
             ),
           ),
-          Text(
-            DateFormat('d\nMMM').format(session['date']),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ElevatedButton(
+            onPressed: client['_id'] != null ? () => goToClientProfile(client['_id']) : null,
+            child: Text('Profile'),
           ),
         ],
       ),
@@ -132,7 +173,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
           ),
           SizedBox(width: 16),
           Text(
-            'Good morning, ${username ?? 'Psychologist'}!',
+            'Good morning, ${username.isNotEmpty ? username : 'User'}!',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -189,9 +230,15 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             ),
 
             SizedBox(height: 20),
-            Text('Upcoming sessions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor1)),
 
-            Expanded(
+            Text('Upcoming sessions',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor1)),
+
+            isLoadingSessions
+                ? Center(child: CircularProgressIndicator())
+                : upcomingSessions.isEmpty
+                ? Center(child: Text('No upcoming sessions'))
+                : Expanded(
               child: ListView(
                 children: upcomingSessions.map(buildSessionCard).toList(),
               ),
@@ -199,6 +246,21 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// Заглушка страницы профиля клиента — реализуй по своему
+class ClientProfilePage extends StatelessWidget {
+  final String clientId;
+  const ClientProfilePage({required this.clientId});
+
+  @override
+  Widget build(BuildContext context) {
+    // Логика загрузки профиля клиента по clientId
+    return Scaffold(
+      appBar: AppBar(title: Text('Client Profile')),
+      body: Center(child: Text('Profile for client $clientId')),
     );
   }
 }

@@ -64,10 +64,12 @@ class _SchedulePageState extends State<SchedulePage> {
     final userId = await getUserId();
     if (token == null || userId == null) return;
 
+    final dateToSend = DateTime(date.year, date.month, date.day);
+
     final url = Uri.parse('http://10.0.2.2:3005/slots');
     final body = jsonEncode({
       'psychologistId': userId,
-      'date': date.toIso8601String(),
+      'date': dateToSend.toIso8601String(),
       'time': time,
     });
 
@@ -86,6 +88,31 @@ class _SchedulePageState extends State<SchedulePage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add slot')),
+      );
+    }
+  }
+
+  Future<void> deleteSlot(String slotId) async {
+    final token = await getToken();
+    if (token == null) return;
+
+    final url = Uri.parse('http://10.0.2.2:3005/slots/$slotId');
+    final response = await http.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Slot deleted')),
+      );
+      await fetchSlots();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to delete slot')),
       );
     }
   }
@@ -109,7 +136,8 @@ class _SchedulePageState extends State<SchedulePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    title: Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}'),
+                    title:
+                        Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}'),
                     trailing: Icon(Icons.calendar_today),
                     onTap: () async {
                       final picked = await showDatePicker(
@@ -150,9 +178,9 @@ class _SchedulePageState extends State<SchedulePage> {
                 ElevatedButton(
                   onPressed: isAddEnabled
                       ? () {
-                    Navigator.pop(context);
-                    addSlot(selectedDate!, selectedTime!);
-                  }
+                          Navigator.pop(context);
+                          addSlot(selectedDate!, selectedTime!);
+                        }
                       : null,
                   child: Text('Add'),
                 )
@@ -166,8 +194,8 @@ class _SchedulePageState extends State<SchedulePage> {
 
   Widget buildSlotTile(Map slot) {
     final dateFormatted =
-    DateFormat('dd MMM yyyy').format(DateTime.parse(slot['date']));
-    final isBooked = slot['booked'] ?? false;
+        DateFormat('dd MMM yyyy').format(DateTime.parse(slot['date']));
+    final isBooked = slot['isBooked'] ?? false;
     return Card(
       color: isBooked ? Colors.red.shade200 : Colors.green.shade200,
       child: ListTile(
@@ -176,11 +204,28 @@ class _SchedulePageState extends State<SchedulePage> {
         trailing: isBooked
             ? null
             : IconButton(
-          icon: Icon(Icons.delete),
-          onPressed: () {
-            // TODO: implement slot deletion
-          },
-        ),
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Delete slot?'),
+                      content: Text('Are you sure you want to delete this slot?'),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text('Cancel')),
+                        ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              deleteSlot(slot['_id']);
+                            },
+                            child: Text('Delete')),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -195,13 +240,13 @@ class _SchedulePageState extends State<SchedulePage> {
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : slots.isEmpty
-          ? Center(child: Text('No slots available'))
-          : ListView.builder(
-        itemCount: slots.length,
-        itemBuilder: (context, index) {
-          return buildSlotTile(slots[index]);
-        },
-      ),
+              ? Center(child: Text('No slots available'))
+              : ListView.builder(
+                  itemCount: slots.length,
+                  itemBuilder: (context, index) {
+                    return buildSlotTile(slots[index]);
+                  },
+                ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSlotDialog,
         backgroundColor: Color(0xFF7592A7),
@@ -210,3 +255,4 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 }
+
