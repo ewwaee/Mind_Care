@@ -25,6 +25,21 @@ class _MainClientPageState extends State<MainClientPage> {
       upcomingSession = session;
     });
   }
+  String? username;
+  Future<void> fetchUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    if (token != null) {
+      final parts = token.split('.');
+      if (parts.length == 3) {
+        final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        final Map<String, dynamic> payloadMap = json.decode(payload);
+        setState(() {
+          username = payloadMap['username']; // имя пользователя из токена
+        });
+      }
+    }
+  }
 
   // Функция для открытия меню
   void _openMenu(BuildContext context) {
@@ -104,6 +119,7 @@ class _MainClientPageState extends State<MainClientPage> {
   @override
   void initState() {
     super.initState();
+    fetchUsername();
     fetchUpcomingSession();  // Загрузка данных о предстоящей сессии при старте
   }
 
@@ -154,7 +170,7 @@ class _MainClientPageState extends State<MainClientPage> {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    'Good morning, Charlie!', // Можно заменить на имя из профиля
+                    'Good morning, ${username ?? 'User'}!',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
