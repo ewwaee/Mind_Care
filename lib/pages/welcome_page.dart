@@ -14,7 +14,7 @@ class WelcomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 📌 Здесь ты контролируешь отступ логотипа
+
             const Padding(
               padding: EdgeInsets.only(top: 180), // ↖️ Поставь любое число
               child: Image(
@@ -26,11 +26,12 @@ class WelcomePage extends StatelessWidget {
             const SizedBox(height: 50),
 
             const Text(
-              'Добро пожаловать в MindCare',
+              'Mindcare — taking care of the soul starts here.',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Colors.white, // чтобы текст был виден
+                color: Color.fromARGB(255, 9, 51, 72),
+                fontFamily: 'InclusiveSans',
               ),
             ),
 
