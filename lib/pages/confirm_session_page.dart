@@ -16,7 +16,7 @@ class ConfirmSessionPage extends StatefulWidget {
 
 class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   String? selectedTime;
-  DateTime? selectedDate = DateTime.now();
+  DateTime? selectedDate;
   final TextEditingController concernController = TextEditingController();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -52,9 +52,15 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       final Map<String, dynamic> slotsJson = jsonDecode(response.body);
       availableSlots = slotsJson.map((key, value) => MapEntry(key, List<String>.from(value)));
 
-      if (selectedDate != null) {
-        String dateKey = DateFormat('yyyy-MM-dd').format(selectedDate!);
-        timesForSelectedDate = availableSlots[dateKey] ?? [];
+      if (availableSlots.isNotEmpty) {
+        String firstDateKey = availableSlots.keys.first;
+        selectedDate = DateTime.parse(firstDateKey);
+        timesForSelectedDate = availableSlots[firstDateKey]!;
+        selectedTime = timesForSelectedDate.isNotEmpty ? timesForSelectedDate[0] : null;
+      } else {
+        selectedDate = null;
+        timesForSelectedDate = [];
+        selectedTime = null;
       }
 
       print('Available slots: $availableSlots');
@@ -77,7 +83,9 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     if (date != null) {
       setState(() {
         selectedDate = date;
-        selectedTime = null;
+        timesForSelectedDate = availableSlots[DateFormat('yyyy-MM-dd').format(date)] ?? [];
+        selectedTime = timesForSelectedDate.isNotEmpty ? timesForSelectedDate[0] : null;
+
       });
       await fetchAvailableSlots(); // обновить расписание при смене даты
     }
@@ -97,10 +105,11 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   }
 
   bool get isFormValid =>
-      selectedTime != null &&
-      selectedDate != null &&
-      nameController.text.isNotEmpty &&
-      phoneController.text.isNotEmpty;
+      
+
+          selectedDate != null &&
+          phoneController.text.trim().isNotEmpty;
+
 
   Future<void> _confirmSession() async {
     final prefs = await SharedPreferences.getInstance();
@@ -118,7 +127,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
 
     final sessionData = {
       'psychologistId': widget.psychologist['_id'],
-      'date': selectedDate!.toIso8601String(),
+      'date': DateFormat('yyyy-MM-dd').format(selectedDate!),
       'time': selectedTime,
       'phone': phoneController.text,
       'concern': concernController.text,
@@ -140,8 +149,11 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     if (response.statusCode == 201) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainClientPage()),
+        MaterialPageRoute(
+          builder: (context) => const MainClientPage(),
+        ),
       );
+
     } else {
       print('Error: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,26 +201,26 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
             SizedBox(height: 16),
             timesForSelectedDate.isEmpty
                 ? Text(
-                    selectedDate == null
-                        ? 'Please select a date to see available times'
-                        : 'No available slots for this date',
-                    style: TextStyle(color: Colors.red),
-                  )
+              selectedDate == null
+                  ? 'Please select a date to see available times'
+                  : 'No available slots for this date',
+              style: TextStyle(color: Colors.red),
+            )
                 : Wrap(
-                    spacing: 8,
-                    children: timesForSelectedDate.map((time) {
-                      final isSelected = time == selectedTime;
-                      return ChoiceChip(
-                        label: Text(time),
-                        selected: isSelected,
-                        onSelected: (_) {
-                          setState(() {
-                            selectedTime = time;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
+              spacing: 8,
+              children: timesForSelectedDate.map((time) {
+                final isSelected = time == selectedTime;
+                return ChoiceChip(
+                  label: Text(time),
+                  selected: isSelected,
+                  onSelected: (_) {
+                    setState(() {
+                      selectedTime = time;
+                    });
+                  },
+                );
+              }).toList(),
+            ),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
@@ -273,6 +285,3 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     );
   }
 }
-
-
-

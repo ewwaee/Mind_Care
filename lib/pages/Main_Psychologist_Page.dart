@@ -12,7 +12,7 @@ class MainPsychologistPage extends StatefulWidget {
 }
 
 class _MainPsychologistPageState extends State<MainPsychologistPage> {
-  String? username;
+  String username = '';  // Изначально пустая строка
   List<Map<String, dynamic>> upcomingSessions = [];
   bool isLoadingSessions = true;
 
@@ -32,7 +32,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
         final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
         final Map<String, dynamic> payloadMap = json.decode(payload);
         setState(() {
-          username = payloadMap['username'];
+          username = payloadMap['username'] ?? '';
         });
       }
     }
@@ -173,7 +173,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
           ),
           SizedBox(width: 16),
           Text(
-            'Good morning, ${username ?? 'Psychologist'}!',
+            'Good morning, ${username.isNotEmpty ? username : 'User'}!',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             buildActionCard(
               'Manage your schedule and appointments.',
               'Go to Schedule',
-              () {
+                  () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SchedulePage()),
@@ -216,7 +216,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             buildActionCard(
               'Review client requests and manage consultations.',
               'View Requests',
-              () {
+                  () {
                 // Навигация к странице запросов
               },
             ),
@@ -224,7 +224,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             buildActionCard(
               'Write articles and share your expertise.',
               'Write Article',
-              () {
+                  () {
                 // Навигация к редактору статей
               },
             ),
@@ -237,12 +237,12 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             isLoadingSessions
                 ? Center(child: CircularProgressIndicator())
                 : upcomingSessions.isEmpty
-                    ? Center(child: Text('No upcoming sessions'))
-                    : Expanded(
-                        child: ListView(
-                          children: upcomingSessions.map(buildSessionCard).toList(),
-                        ),
-                      ),
+                ? Center(child: Text('No upcoming sessions'))
+                : Expanded(
+              child: ListView(
+                children: upcomingSessions.map(buildSessionCard).toList(),
+              ),
+            ),
           ],
         ),
       ),
@@ -264,4 +264,3 @@ class ClientProfilePage extends StatelessWidget {
     );
   }
 }
-

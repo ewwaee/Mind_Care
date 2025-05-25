@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -62,10 +61,9 @@ class _ChatPageState extends State<ChatPage> {
       isLoading = true;
     });
 
-    final reply = await sendMessageToAPI(userMessage);
 
     setState(() {
-      messages.add({'role': 'assistant', 'content': reply});
+
       isLoading = false;
     });
   }
