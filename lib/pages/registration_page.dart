@@ -1,4 +1,3 @@
-
 import 'login_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
@@ -23,7 +22,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _motivationController = TextEditingController(); // Мотивация для волонтера
 
   String _selectedRole = 'Client';
-  bool _obscurePassword = true;
+  final bool _obscurePassword = true;
 
   // Функция для отправки данных на сервер
   Future<void> registerUser() async {
@@ -102,7 +101,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -180,7 +178,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     );
   }
-
   Widget _buildInputField(TextEditingController controller, String label, {bool isPassword = false, int? maxLength}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

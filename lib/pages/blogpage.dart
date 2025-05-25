@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class BlogPage extends StatefulWidget {
+  const BlogPage({super.key});
+
   @override
   _BlogPageState createState() => _BlogPageState();
 }
@@ -53,46 +55,46 @@ class _BlogPageState extends State<BlogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Blog'),
-        leading: BackButton(),
+        title: const Text('Blog'),
+        leading: const BackButton(),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
       ),
       backgroundColor: Colors.white,
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : error != null
           ? Center(child: Text(error!))
           : ListView.builder(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         itemCount: articles.length,
         itemBuilder: (context, index) {
           final article = articles[index];
           return Card(
-            color: Color(0xFF8FA9B7),
-            margin: EdgeInsets.only(bottom: 16),
+            color: const Color(0xFF8FA9B7),
+            margin: const EdgeInsets.only(bottom: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     article['title'],
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black87,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   if (expanded[index])
                     Text(
                       article['body'],
-                      style: TextStyle(color: Colors.black87),
+                      style: const TextStyle(color: Colors.black87),
                     ),
                   Align(
                     alignment: Alignment.bottomRight,
@@ -102,14 +104,14 @@ class _BlogPageState extends State<BlogPage> {
                           expanded[index] = !expanded[index];
                         });
                       },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(50, 20),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         expanded[index] ? 'Скрыть...' : 'Раскрыть...',
                         style: TextStyle(color: Colors.black54),
-                      ),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size(50, 20),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   ),

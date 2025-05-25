@@ -10,6 +10,8 @@ import 'SessionDetailsPage.dart';
 import 'welcome_page.dart';
 
 class MainClientPage extends StatefulWidget {
+  const MainClientPage({super.key});
+
   @override
   _MainClientPageState createState() => _MainClientPageState();
 }
@@ -32,18 +34,18 @@ class _MainClientPageState extends State<MainClientPage> {
         return ListView(
           children: [
             ListTile(
-              leading: Icon(Icons.person),
-              title: Text("Profile"),
+              leading: const Icon(Icons.person),
+              title: const Text("Profile"),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => WelcomePage()),
+                  MaterialPageRoute(builder: (context) => const WelcomePage()),
                 );
               },
             ),
             ListTile(
-              leading: Icon(Icons.psychology),
-              title: Text("Psychologists"),
+              leading: const Icon(Icons.psychology),
+              title: const Text("Psychologists"),
               onTap: () {
                 Navigator.push(
                   context,
@@ -52,8 +54,8 @@ class _MainClientPageState extends State<MainClientPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.article),
-              title: Text("Articles"),
+              leading: const Icon(Icons.article),
+              title: const Text("Articles"),
               onTap: () {
                 Navigator.push(
                   context,
@@ -62,8 +64,8 @@ class _MainClientPageState extends State<MainClientPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.exit_to_app),
-              title: Text("Log out"),
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text("Log out"),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
@@ -93,7 +95,7 @@ class _MainClientPageState extends State<MainClientPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load upcoming session')),
+        const SnackBar(content: Text('Failed to load upcoming session')),
       );
     }
   }
@@ -107,12 +109,12 @@ class _MainClientPageState extends State<MainClientPage> {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = Color(0xFFF3F6F9);
-    final cardColor1 = Color(0xFF9FB6C6);
-    final cardColor2 = Color(0xFF7592A7);
-    final textColor1 = Color(0xFF1B1B1B);
-    final textColor2 = Colors.white;
-    final accentColor = Color(0xFF2F4179);
+    const backgroundColor = Color(0xFFF3F6F9);
+    const cardColor1 = Color(0xFF9FB6C6);
+    const cardColor2 = Color(0xFF7592A7);
+    const textColor1 = Color(0xFF1B1B1B);
+    const textColor2 = Colors.white;
+    const accentColor = Color(0xFF2F4179);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -140,7 +142,7 @@ class _MainClientPageState extends State<MainClientPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => WelcomePage(),
+                          builder: (context) => const WelcomePage(),
                         ),
                       );
                     },
@@ -184,12 +186,12 @@ class _MainClientPageState extends State<MainClientPage> {
                         BoxShadow(
                           color: cardColor1.withOpacity(0.5),
                           blurRadius: 10,
-                          offset: Offset(0, 6),
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
-                    padding: EdgeInsets.all(18),
-                    margin: EdgeInsets.only(bottom: 30),
+                    padding: const EdgeInsets.all(18),
+                    margin: const EdgeInsets.only(bottom: 30),
                     child: Row(
                       children: [
                         CircleAvatar(
@@ -262,12 +264,12 @@ class _MainClientPageState extends State<MainClientPage> {
                       BoxShadow(
                         color: cardColor1.withOpacity(0.5),
                         blurRadius: 10,
-                        offset: Offset(0, 6),
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
-                  padding: EdgeInsets.all(18),
-                  margin: EdgeInsets.only(bottom: 30),
+                  padding: const EdgeInsets.all(18),
+                  margin: const EdgeInsets.only(bottom: 30),
                   child: Row(
                     children: [
                       CircleAvatar(
