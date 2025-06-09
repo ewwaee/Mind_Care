@@ -14,6 +14,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _specializationController = TextEditingController();
@@ -22,13 +23,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _motivationController = TextEditingController();
 
   String _selectedRole = 'Client';
+  String? _selectedGender;
   final bool _obscurePassword = true;
 
   Future<void> registerUser() async {
-    // Проверка заполнения полей и валидация
     if (_nameController.text.isEmpty ||
         _phoneController.text.isEmpty ||
         _passwordController.text.isEmpty ||
+        _selectedGender == null ||
         (_selectedRole == 'Client' && _birthDateController.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All required fields must be filled!')),
@@ -45,10 +47,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
     final url = Uri.parse('http://10.0.2.2:3005/register');
 
-    // Формируем тело запроса с учетом роли
     Map<String, dynamic> body = {
       'username': _nameController.text,
       'phone': _phoneController.text,
+      'email': _emailController.text,
+      'gender': _selectedGender,
       'password': _passwordController.text,
       'role': _selectedRole,
     };
@@ -201,6 +204,41 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
                 _buildInputField(_nameController, 'Name'),
                 _buildInputField(_phoneController, 'Phone'),
+                _buildInputField(_emailController, 'Email'),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedGender,
+                    items: ['Male', 'Female'].map((gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedGender = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFD4F0F7),
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select gender';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+
                 _buildInputField(_passwordController, 'Password', isPassword: true),
                 _buildInputField(_confirmPasswordController, 'Confirm your password', isPassword: true),
 
@@ -243,4 +281,3 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 }
-
