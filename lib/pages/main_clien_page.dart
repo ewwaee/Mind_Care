@@ -17,15 +17,17 @@ class MainClientPage extends StatefulWidget {
 }
 
 class _MainClientPageState extends State<MainClientPage> {
-  Map<String, dynamic>? upcomingSession;
-
-  // Функция для установки данных о предстоящей сессии
-  void setUpcomingSession(Map<String, dynamic> session) {
-    setState(() {
-      upcomingSession = session;
-    });
-  }
+  List<Map<String, dynamic>> upcomingSessions = [];
+  bool isLoadingSessions = true;
   String? username;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsername();
+    fetchUpcomingSessions();
+  }
+
   Future<void> fetchUsername() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -41,7 +43,14 @@ class _MainClientPageState extends State<MainClientPage> {
     }
   }
 
-  // Функция для открытия меню
+  // Добавляем одну сессию (например, после выбора психолога)
+  void addUpcomingSession(Map<String, dynamic> session) {
+    setState(() {
+      upcomingSessions = [session];
+    });
+  }
+
+  // Функция открытия меню
   void _openMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -94,7 +103,7 @@ class _MainClientPageState extends State<MainClientPage> {
     );
   }
 
-  Future<void> fetchUpcomingSession() async {
+  Future<void> fetchUpcomingSessions() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token') ?? '';
 
@@ -106,21 +115,75 @@ class _MainClientPageState extends State<MainClientPage> {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       setState(() {
-        upcomingSession = data.isNotEmpty ? data[0] : null;
+        if (data is List) {
+          upcomingSessions = List<Map<String, dynamic>>.from(
+            data.map((item) => Map<String, dynamic>.from(item)),
+          );
+        } else if (data is Map) {
+          upcomingSessions = [Map<String, dynamic>.from(data)];
+        } else {
+          upcomingSessions = [];
+        }
+        isLoadingSessions = false;
       });
     } else {
+      setState(() {
+        isLoadingSessions = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load upcoming session')),
+        const SnackBar(content: Text('Failed to load upcoming sessions')),
       );
     }
   }
 
+  Widget buildSessionCard(Map<String, dynamic> session) {
+    final psychologist = session['psychologist'] ?? {};
+    final psychologistName = psychologist['name'] ?? 'Unknown psychologist';
+    final date = DateTime.parse(session['date']);
+    final time = session['time'] ?? '';
 
-  @override
-  void initState() {
-    super.initState();
-    fetchUsername();
-    fetchUpcomingSession();  // Загрузка данных о предстоящей сессии при старте
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => SessionDetailsPage(session: session)),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF9FB6C6),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 28,
+              backgroundColor: Color(0xFF7592A7),
+              child: Icon(Icons.person, color: Colors.white, size: 32),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(psychologistName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('$time, ${DateFormat('d MMM yyyy').format(date)}', style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                  if (session['concern'] != null)
+                    Text(
+                      session['concern'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, color: Colors.black54),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -162,7 +225,7 @@ class _MainClientPageState extends State<MainClientPage> {
                         ),
                       );
                     },
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       radius: 28,
                       backgroundColor: cardColor1,
                       child: Icon(Icons.person, color: textColor2, size: 32),
@@ -171,7 +234,7 @@ class _MainClientPageState extends State<MainClientPage> {
                   const SizedBox(width: 16),
                   Text(
                     'Good morning, ${username ?? 'User'}!',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: textColor1,
@@ -183,96 +246,11 @@ class _MainClientPageState extends State<MainClientPage> {
 
               const SizedBox(height: 36),
 
-              // Предстоящая сессия
-              if (upcomingSession != null)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SessionDetailsPage(session: upcomingSession!),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: cardColor1,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: cardColor1.withOpacity(0.5),
-                          blurRadius: 10,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(18),
-                    margin: const EdgeInsets.only(bottom: 30),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: cardColor2,
-                          child: Icon(Icons.person, color: textColor2, size: 36),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                upcomingSession!['psychologistName'], // Имя психолога
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: textColor1,
-                                  fontFamily: 'InclusiveSans',
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                upcomingSession!['concern'],
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: cardColor2,
-                                  fontFamily: 'InclusiveSans',
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: cardColor2,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                          child: Column(
-                            children: [
-                              Text(
-                                DateFormat('dd MMM yyyy').format(DateTime.parse(upcomingSession!['date'])),
-                                style: TextStyle(
-                                  color: textColor2,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  fontFamily: 'InclusiveSans',
-                                ),
-                              ),
-                              Text(
-                                upcomingSession!['time'],
-                                style: TextStyle(color: textColor2, fontSize: 14, fontFamily: 'InclusiveSans'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                Container(
+              Expanded(
+                child: isLoadingSessions
+                    ? const Center(child: CircularProgressIndicator())
+                    : upcomingSessions.isEmpty
+                    ? Container(
                   decoration: BoxDecoration(
                     color: cardColor1,
                     borderRadius: BorderRadius.circular(20),
@@ -288,7 +266,7 @@ class _MainClientPageState extends State<MainClientPage> {
                   margin: const EdgeInsets.only(bottom: 30),
                   child: Row(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 30,
                         backgroundColor: cardColor2,
                         child: Icon(Icons.person, color: textColor2, size: 36),
@@ -296,7 +274,7 @@ class _MainClientPageState extends State<MainClientPage> {
                       const SizedBox(width: 20),
                       Text(
                         'No Upcoming Session',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: cardColor2,
@@ -305,7 +283,11 @@ class _MainClientPageState extends State<MainClientPage> {
                       ),
                     ],
                   ),
+                )
+                    : ListView(
+                  children: upcomingSessions.map(buildSessionCard).toList(),
                 ),
+              ),
 
               // Поиск психолога
               Container(
@@ -345,7 +327,7 @@ class _MainClientPageState extends State<MainClientPage> {
                           MaterialPageRoute(builder: (context) => PsychologistsPage()),
                         );
                         if (session != null) {
-                          setUpcomingSession(session);
+                          addUpcomingSession(session);
                         }
                       },
                       child: const Text(
