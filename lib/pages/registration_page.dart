@@ -24,6 +24,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
   String _selectedRole = 'Client';
   String? _selectedGender;
+  List<String> _selectedTopics = [];
+
+  final List<String> _availableTopics = [
+    'Отношения',
+    'Стресс',
+    'Учёба',
+    'Работа',
+    'Самооценка',
+    'Тревога',
+    'Депрессия'
+  ];
+
   final bool _obscurePassword = true;
 
   Future<void> registerUser() async {
@@ -54,6 +66,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       'gender': _selectedGender,
       'password': _passwordController.text,
       'role': _selectedRole,
+      'topics': _selectedTopics,
     };
 
     if (_selectedRole == 'Psychologist') {
@@ -117,6 +130,37 @@ class _RegistrationPageState extends State<RegistrationPage> {
         },
       );
     }
+  }
+
+  Widget _buildTopicSelector() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Выберите интересующие темы:', style: TextStyle(fontSize: 16)),
+          Wrap(
+            spacing: 10.0,
+            children: _availableTopics.map((topic) {
+              final isSelected = _selectedTopics.contains(topic);
+              return FilterChip(
+                label: Text(topic),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedTopics.add(topic);
+                    } else {
+                      _selectedTopics.remove(topic);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          )
+        ],
+      ),
+    );
   }
 
   Widget _buildInputField(TextEditingController controller, String label,
@@ -238,6 +282,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     },
                   ),
                 ),
+
+                if (_selectedRole != 'Volunteer') _buildTopicSelector(),
 
                 _buildInputField(_passwordController, 'Password', isPassword: true),
                 _buildInputField(_confirmPasswordController, 'Confirm your password', isPassword: true),
