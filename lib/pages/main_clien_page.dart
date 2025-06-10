@@ -233,7 +233,7 @@ class _MainClientPageState extends State<MainClientPage> {
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    'Good morning, ${username ?? 'User'}!',
+                    'Good morning, ${username ?? 'Asel'}!',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -244,47 +244,51 @@ class _MainClientPageState extends State<MainClientPage> {
                 ],
               ),
 
-              const SizedBox(height: 36),
-
-              Expanded(
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 160, // можно отрегулировать по вкусу
                 child: isLoadingSessions
                     ? const Center(child: CircularProgressIndicator())
                     : upcomingSessions.isEmpty
                     ? Container(
                   decoration: BoxDecoration(
                     color: cardColor1,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: cardColor1.withOpacity(0.5),
-                        blurRadius: 10,
-                        offset: const Offset(0, 6),
+                        color: cardColor1.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(18),
-                  margin: const EdgeInsets.only(bottom: 30),
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 20),
                   child: Row(
                     children: [
                       const CircleAvatar(
-                        radius: 30,
+                        radius: 24,
                         backgroundColor: cardColor2,
-                        child: Icon(Icons.person, color: textColor2, size: 36),
+                        child: Icon(Icons.person, color: textColor2, size: 30),
                       ),
-                      const SizedBox(width: 20),
-                      Text(
-                        'No Upcoming Session',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: cardColor2,
-                          fontFamily: 'InclusiveSans',
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          'No Upcoming Session',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: cardColor2,
+                            fontFamily: 'InclusiveSans',
+                          ),
                         ),
                       ),
                     ],
                   ),
                 )
                     : ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 10),
                   children: upcomingSessions.map(buildSessionCard).toList(),
                 ),
               ),
