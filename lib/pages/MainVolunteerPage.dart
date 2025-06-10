@@ -1,3 +1,5 @@
+// ignore_for_file: file_names, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -168,7 +170,7 @@ class _MainVolunteerPageState extends State<MainVolunteerPage> {
                     _buildSectionHeader('Психологи', () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => PsychologistsPage()),
+                        MaterialPageRoute(builder: (_) => const PsychologistsPage()),
                       );
                     }),
                     ...psychologists.take(3).map((psych) => Container(
@@ -209,7 +211,7 @@ class _MainVolunteerPageState extends State<MainVolunteerPage> {
                     _buildSectionHeader('Статьи', () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => BlogPage()),
+                        MaterialPageRoute(builder: (_) => const BlogPage()),
                       );
                     }),
                     ...articles.take(3).map((article) => Container(
@@ -279,7 +281,7 @@ class _MainVolunteerPageState extends State<MainVolunteerPage> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => BlogPage()),
+                                MaterialPageRoute(builder: (context) => const BlogPage()),
                               );
                             },
                             child: const Text(

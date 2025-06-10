@@ -1,3 +1,5 @@
+// ignore_for_file: file_names, prefer_const_declarations
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +9,8 @@ import 'package:intl/intl.dart';
 import 'Schedule_Page.dart';  // Импорт страницы расписания
 
 class MainPsychologistPage extends StatefulWidget {
+  const MainPsychologistPage({super.key});
+
   @override
   _MainPsychologistPageState createState() => _MainPsychologistPageState();
 }
@@ -64,7 +68,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
         isLoadingSessions = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load upcoming sessions')),
+        const SnackBar(content: Text('Failed to load upcoming sessions')),
       );
     }
   }
@@ -81,27 +85,27 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
   Widget buildActionCard(String title, String buttonText, VoidCallback onPressed) {
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(vertical: 8),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Color(0xFF9FB6C6),
+        color: const Color(0xFF9FB6C6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(fontSize: 16, color: Colors.black87)),
-          SizedBox(height: 12),
+          Text(title, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+          const SizedBox(height: 12),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF2F4179),
+              backgroundColor: const Color(0xFF2F4179),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
             ),
             onPressed: onPressed,
-            child: Text(buttonText, style: TextStyle(fontSize: 14)),
+            child: Text(buttonText, style: const TextStyle(fontSize: 14)),
           )
         ],
       ),
@@ -117,34 +121,34 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.symmetric(vertical: 6),
-      padding: EdgeInsets.all(12),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Color(0xFF9FB6C6),
+        color: const Color(0xFF9FB6C6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 28,
             backgroundColor: Color(0xFF7592A7),
             child: Icon(Icons.person, color: Colors.white, size: 32),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(clientName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(clientInfo, style: TextStyle(fontSize: 12, color: Colors.black87)),
+                Text(clientName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(clientInfo, style: const TextStyle(fontSize: 12, color: Colors.black87)),
                 Text('$time, ${DateFormat('d MMM yyyy').format(date)}',
-                    style: TextStyle(fontSize: 14, color: Colors.black87)),
+                    style: const TextStyle(fontSize: 14, color: Colors.black87)),
               ],
             ),
           ),
           ElevatedButton(
             onPressed: client['_id'] != null ? () => goToClientProfile(client['_id']) : null,
-            child: Text('Profile'),
+            child: const Text('Profile'),
           ),
         ],
       ),
@@ -152,14 +156,14 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
   }
 
   Widget buildGreeting() {
-    final cardColor1 = Color(0xFF9FB6C6);
+    const cardColor1 = Color(0xFF9FB6C6);
     final textColor2 = Colors.white;
-    final textColor1 = Color(0xFF1B1B1B);
+    const textColor1 = Color(0xFF1B1B1B);
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.only(bottom: 20),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor1,
         borderRadius: BorderRadius.circular(12),
@@ -168,13 +172,13 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
         children: [
           CircleAvatar(
             radius: 28,
-            backgroundColor: Color(0xFF7592A7),
+            backgroundColor: const Color(0xFF7592A7),
             child: Icon(Icons.person, color: textColor2, size: 32),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Text(
             'Good morning, ${username.isNotEmpty ? username : 'User'}!',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: textColor1,
@@ -187,16 +191,16 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
 
   @override
   Widget build(BuildContext context) {
-    final textColor1 = Color(0xFF1B1B1B);
+    const textColor1 = Color(0xFF1B1B1B);
 
     return Scaffold(
-      backgroundColor: Color(0xFFF3F6F9),
+      backgroundColor: const Color(0xFFF3F6F9),
       appBar: AppBar(
-        backgroundColor: Color(0xFF9FB6C6),
-        title: Text('Dashboard'),
+        backgroundColor: const Color(0xFF9FB6C6),
+        title: const Text('Dashboard'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -229,15 +233,15 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
               },
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-            Text('Upcoming sessions',
+            const Text('Upcoming sessions',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: textColor1)),
 
             isLoadingSessions
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : upcomingSessions.isEmpty
-                ? Center(child: Text('No upcoming sessions'))
+                ? const Center(child: Text('No upcoming sessions'))
                 : Expanded(
               child: ListView(
                 children: upcomingSessions.map(buildSessionCard).toList(),
@@ -253,13 +257,13 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
 // Заглушка страницы профиля клиента — реализуй по своему
 class ClientProfilePage extends StatelessWidget {
   final String clientId;
-  const ClientProfilePage({required this.clientId});
+  const ClientProfilePage({super.key, required this.clientId});
 
   @override
   Widget build(BuildContext context) {
     // Логика загрузки профиля клиента по clientId
     return Scaffold(
-      appBar: AppBar(title: Text('Client Profile')),
+      appBar: AppBar(title: const Text('Client Profile')),
       body: Center(child: Text('Profile for client $clientId')),
     );
   }

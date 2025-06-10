@@ -1,3 +1,5 @@
+// ignore_for_file: file_names, use_key_in_widget_constructors
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -54,7 +56,7 @@ class _SchedulePageState extends State<SchedulePage> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load schedule')),
+        const SnackBar(content: Text('Failed to load schedule')),
       );
     }
   }
@@ -83,11 +85,11 @@ class _SchedulePageState extends State<SchedulePage> {
     if (response.statusCode == 201) {
       await fetchSlots();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Slot added')),
+        const SnackBar(content: Text('Slot added')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add slot')),
+        const SnackBar(content: Text('Failed to add slot')),
       );
     }
   }
@@ -107,12 +109,12 @@ class _SchedulePageState extends State<SchedulePage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Slot deleted')),
+        const SnackBar(content: Text('Slot deleted')),
       );
       await fetchSlots();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to delete slot')),
+        const SnackBar(content: Text('Failed to delete slot')),
       );
     }
   }
@@ -131,20 +133,20 @@ class _SchedulePageState extends State<SchedulePage> {
             bool isAddEnabled = selectedTime != null && selectedDate != null;
 
             return AlertDialog(
-              title: Text('Add new slot'),
+              title: const Text('Add new slot'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
                     title:
                         Text('Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}'),
-                    trailing: Icon(Icons.calendar_today),
+                    trailing: const Icon(Icons.calendar_today),
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
                         initialDate: selectedDate!,
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                       );
                       if (picked != null) {
                         setStateDialog(() {
@@ -154,7 +156,7 @@ class _SchedulePageState extends State<SchedulePage> {
                     },
                   ),
                   DropdownButton<String>(
-                    hint: Text('Select time'),
+                    hint: const Text('Select time'),
                     value: selectedTime,
                     items: times.map((time) {
                       return DropdownMenuItem(
@@ -173,7 +175,7 @@ class _SchedulePageState extends State<SchedulePage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   onPressed: isAddEnabled
@@ -182,7 +184,7 @@ class _SchedulePageState extends State<SchedulePage> {
                           addSlot(selectedDate!, selectedTime!);
                         }
                       : null,
-                  child: Text('Add'),
+                  child: const Text('Add'),
                 )
               ],
             );
@@ -204,23 +206,23 @@ class _SchedulePageState extends State<SchedulePage> {
         trailing: isBooked
             ? null
             : IconButton(
-                icon: Icon(Icons.delete),
+                icon: const Icon(Icons.delete),
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Delete slot?'),
-                      content: Text('Are you sure you want to delete this slot?'),
+                      title: const Text('Delete slot?'),
+                      content: const Text('Are you sure you want to delete this slot?'),
                       actions: [
                         TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: Text('Cancel')),
+                            child: const Text('Cancel')),
                         ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
                               deleteSlot(slot['_id']);
                             },
-                            child: Text('Delete')),
+                            child: const Text('Delete')),
                       ],
                     ),
                   );
@@ -234,13 +236,13 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Schedule'),
-        backgroundColor: Color(0xFF9FB6C6),
+        title: const Text('Schedule'),
+        backgroundColor: const Color(0xFF9FB6C6),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : slots.isEmpty
-              ? Center(child: Text('No slots available'))
+              ? const Center(child: Text('No slots available'))
               : ListView.builder(
                   itemCount: slots.length,
                   itemBuilder: (context, index) {
@@ -249,8 +251,8 @@ class _SchedulePageState extends State<SchedulePage> {
                 ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddSlotDialog,
-        backgroundColor: Color(0xFF7592A7),
-        child: Icon(Icons.add),
+        backgroundColor: const Color(0xFF7592A7),
+        child: const Icon(Icons.add),
       ),
     );
   }

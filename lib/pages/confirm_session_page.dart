@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, use_key_in_widget_constructors
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -8,7 +10,7 @@ import 'package:intl/intl.dart';
 
 class ConfirmSessionPage extends StatefulWidget {
   final Map<String, dynamic> psychologist;
-  ConfirmSessionPage({required this.psychologist});
+  const ConfirmSessionPage({required this.psychologist});
 
   @override
   _ConfirmSessionPageState createState() => _ConfirmSessionPageState();
@@ -78,7 +80,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
       context: context,
       initialDate: selectedDate ?? now,
       firstDate: now,
-      lastDate: now.add(Duration(days: 365)),
+      lastDate: now.add(const Duration(days: 365)),
     );
     if (date != null) {
       setState(() {
@@ -117,7 +119,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User token is missing, please login again')),
+        const SnackBar(content: Text('User token is missing, please login again')),
       );
       return;
     }
@@ -157,7 +159,7 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
     } else {
       print('Error: ${response.body}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to confirm session')),
+        const SnackBar(content: Text('Failed to confirm session')),
       );
     }
   }
@@ -166,21 +168,21 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Confirm your session'),
-        leading: BackButton(),
-        backgroundColor: Color(0xFF174754),
+        title: const Text('Confirm your session'),
+        leading: const BackButton(),
+        backgroundColor: const Color(0xFF174754),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Session details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            SizedBox(height: 8),
+            const Text('Session details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: _pickDate,
               child: Container(
-                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                 decoration: BoxDecoration(
                   color: Colors.blueGrey.shade200,
                   borderRadius: BorderRadius.circular(12),
@@ -193,18 +195,18 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                         style: TextStyle(
                             fontSize: 16,
                             color: selectedDate == null ? Colors.grey : Colors.black)),
-                    Icon(Icons.calendar_today, color: Color(0xFF174754)),
+                    const Icon(Icons.calendar_today, color: Color(0xFF174754)),
                   ],
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             timesForSelectedDate.isEmpty
                 ? Text(
               selectedDate == null
                   ? 'Please select a date to see available times'
                   : 'No available slots for this date',
-              style: TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.red),
             )
                 : Wrap(
               spacing: 8,
@@ -221,23 +223,23 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 );
               }).toList(),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blueGrey.shade200,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  CircleAvatar(child: Icon(Icons.person)),
-                  SizedBox(width: 12),
+                  const CircleAvatar(child: Icon(Icons.person)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(widget.psychologist['name'],
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
                         Text(widget.psychologist['description']),
                       ],
                     ),
@@ -246,38 +248,38 @@ class _ConfirmSessionPageState extends State<ConfirmSessionPage> {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Your Name",
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Phone Number",
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             TextField(
               controller: concernController,
               maxLines: 4,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Feel free to share your emotion and thoughts here',
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 8),
-            Text('After confirmation you will get message with zoom link'),
-            SizedBox(height: 16),
+            const SizedBox(height: 8),
+            const Text('After confirmation you will get message with zoom link'),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: isFormValid ? _confirmSession : null,
-              child: Text('Confirm session'),
+              child: const Text('Confirm session'),
             ),
           ],
         ),

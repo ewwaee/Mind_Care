@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -73,7 +75,7 @@ class _MainClientPageState extends State<MainClientPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PsychologistsPage()),
+                  MaterialPageRoute(builder: (context) => const PsychologistsPage()),
                 );
               },
             ),
@@ -83,7 +85,7 @@ class _MainClientPageState extends State<MainClientPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => BlogPage()),
+                  MaterialPageRoute(builder: (context) => const BlogPage()),
                 );
               },
             ),
@@ -264,17 +266,17 @@ class _MainClientPageState extends State<MainClientPage> {
                   ),
                   padding: const EdgeInsets.all(18),
                   margin: const EdgeInsets.only(bottom: 30),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 30,
                         backgroundColor: cardColor2,
                         child: Icon(Icons.person, color: textColor2, size: 36),
                       ),
-                      const SizedBox(width: 20),
+                      SizedBox(width: 20),
                       Text(
                         'No Upcoming Session',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: cardColor2,
@@ -306,7 +308,7 @@ class _MainClientPageState extends State<MainClientPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       'Find best therapist for you and schedule a session!',
                       style: TextStyle(fontSize: 17, color: textColor1, fontFamily: 'InclusiveSans'),
                     ),
@@ -324,7 +326,7 @@ class _MainClientPageState extends State<MainClientPage> {
                       onPressed: () async {
                         final session = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => PsychologistsPage()),
+                          MaterialPageRoute(builder: (context) => const PsychologistsPage()),
                         );
                         if (session != null) {
                           addUpcomingSession(session);
@@ -358,7 +360,7 @@ class _MainClientPageState extends State<MainClientPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Read articles based on your interests and needs!",
                       style: TextStyle(fontSize: 17, color: textColor2, fontFamily: 'InclusiveSans'),
                     ),
@@ -376,7 +378,7 @@ class _MainClientPageState extends State<MainClientPage> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => BlogPage()),
+                          MaterialPageRoute(builder: (context) => const BlogPage()),
                         );
                       },
                       child: const Text(

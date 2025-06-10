@@ -1,4 +1,6 @@
 
+// ignore_for_file: deprecated_member_use
+
 import 'package:doctor_app_fixed/theme/colors.dart';
 import 'package:flutter/material.dart';
 

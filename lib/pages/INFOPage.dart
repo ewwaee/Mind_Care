@@ -1,3 +1,5 @@
+// ignore_for_file: file_names, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -40,7 +42,7 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load sessions')),
+        const SnackBar(content: Text('Failed to load sessions')),
       );
     }
   }
@@ -64,7 +66,7 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
         isClientLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load client profile')),
+        const SnackBar(content: Text('Failed to load client profile')),
       );
     }
   }
@@ -79,20 +81,20 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
           orElse: () => null,
         );
         return AlertDialog(
-          title: Text('Профиль клиента'),
+          title: const Text('Профиль клиента'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Имя: ${client['username']}'),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text('Телефон: ${client['phone']}'),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 if (session != null && session['zoomLink'] != null && session['zoomLink'].toString().isNotEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Ссылка Zoom:'),
+                      const Text('Ссылка Zoom:'),
                       GestureDetector(
                         onTap: () async {
                           final url = session['zoomLink'];
@@ -100,25 +102,25 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
                             await launch(url);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Не удалось открыть ссылку')),
+                              const SnackBar(content: Text('Не удалось открыть ссылку')),
                             );
                           }
                         },
                         child: Text(
                           session['zoomLink'],
-                          style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                          style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
                         ),
                       ),
                     ],
                   )
                 else
-                  Text('Ссылка Zoom не доступна'),
+                  const Text('Ссылка Zoom не доступна'),
               ],
             ),
           ),
           actions: [
             TextButton(
-              child: Text('Закрыть'),
+              child: const Text('Закрыть'),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -132,12 +134,12 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
     final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: ListTile(
         title: Text('Клиент: ${session['client']['username']}'),
         subtitle: Text('Дата: $formattedDate, Время: ${session['time']}'),
         trailing: ElevatedButton(
-          child: Text('Профиль клиента'),
+          child: const Text('Профиль клиента'),
           onPressed: () => fetchClientProfile(session['client']['_id']),
         ),
       ),
@@ -146,12 +148,12 @@ class _PsychologistSessionsPageState extends State<PsychologistSessionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return Center(child: CircularProgressIndicator());
+    if (isLoading) return const Center(child: CircularProgressIndicator());
 
-    if (sessions.isEmpty) return Center(child: Text('Нет предстоящих сессий'));
+    if (sessions.isEmpty) return const Center(child: Text('Нет предстоящих сессий'));
 
     return Scaffold(
-      appBar: AppBar(title: Text('Предстоящие сессии')),
+      appBar: AppBar(title: const Text('Предстоящие сессии')),
       body: ListView.builder(
         itemCount: sessions.length,
         itemBuilder: (context, index) {

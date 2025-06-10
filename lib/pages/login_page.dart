@@ -1,10 +1,12 @@
+import 'package:doctor_app_fixed/pages/ForgotPassword_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';  // Импортируем для хранения токена
-import 'main_clien_page.dart'; // Главная страница после успешного логина
+import 'package:shared_preferences/shared_preferences.dart';
+import 'main_clien_page.dart';
 import 'Main_Psychologist_Page.dart';
 import 'MainVolunteerPage.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -14,28 +16,24 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _phoneController = TextEditingController(); // Для телефона
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
-  // Функция для отправки данных на сервер (логин)
   Future<void> loginUser() async {
-    final url = Uri.parse('http://10.0.2.2:3005/login'); // Адрес вашего сервера Node.js
+    final url = Uri.parse('http://10.0.2.2:3005/login');
 
-    // Отправка запроса на сервер
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'phone': _phoneController.text, // Отправляем номер телефона
+        'email': _emailController.text,
         'password': _passwordController.text,
       }),
     );
 
     if (response.statusCode == 200) {
-      // Если логин успешен, переход на главную страницу
       final data = jsonDecode(response.body);
-
 
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('token', data['token']);
@@ -43,21 +41,28 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login successful!')),
       );
-      if (data['role'] == 'Client') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainClientPage()));
-      } else if (data['role'] == 'Psychologist') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainPsychologistPage()));
-      } else if (data['role'] == 'Volunteer') {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainVolunteerPage()));
-      }
 
+      if (data['role'] == 'Client') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainClientPage()));
+      } else if (data['role'] == 'Psychologist') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainPsychologistPage()));
+      } else if (data['role'] == 'Volunteer') {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const MainVolunteerPage()));
+      }
     } else {
-      // Если ошибка при логине
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login failed: ${response.body}')),
       );
     }
   }
+
+ void navigateToResetPassword() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +91,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 40),
-                const Text('Your phone number:'), // Изменяем на номер телефона
+                const Text('Your email:'),
                 const SizedBox(height: 8),
                 TextFormField(
-                  controller: _phoneController,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.lightBlue.shade100,
@@ -99,8 +105,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.length < 10) {
-                      return 'Enter a valid phone number';
+                    if (value == null || !value.contains('@')) {
+                      return 'Enter a valid email';
                     }
                     return null;
                   },
@@ -130,21 +136,29 @@ class _LoginPageState extends State<LoginPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: navigateToResetPassword,
+                    child: const Text('Forgot password?'),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF044C70),
-                      foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        loginUser(); // Вызываем функцию логина
+                        loginUser();
                       }
                     },
                     child: const Text('Sign In'),
@@ -158,4 +172,5 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-//gggggggggggggggg
+
+
