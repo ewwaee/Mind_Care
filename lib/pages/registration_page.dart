@@ -1,9 +1,9 @@
 // ignore_for_file: prefer_final_fields
 
-import 'login_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'EmailVerificationCode_page.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -41,98 +41,71 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final bool _obscurePassword = true;
 
   Future<void> registerUser() async {
-    if (_nameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _selectedGender == null ||
-        (_selectedRole == 'Client' && _birthDateController.text.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All required fields must be filled!')),
-      );
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match!')),
-      );
-      return;
-    }
-
-    final url = Uri.parse('http://10.0.2.2:3005/register');
-
-    Map<String, dynamic> body = {
-      'username': _nameController.text,
-      'phone': _phoneController.text,
-      'email': _emailController.text,
-      'gender': _selectedGender,
-      'password': _passwordController.text,
-      'role': _selectedRole,
-      'topics': _selectedTopics,
-    };
-
-    if (_selectedRole == 'Psychologist') {
-      body['specialization'] = _specializationController.text;
-      body['experience'] = _experienceController.text;
-      body['birthDate'] = _birthDateController.text;
-    }
-
-    if (_selectedRole == 'Client') {
-      body['birthDate'] = _birthDateController.text;
-    }
-
-    if (_selectedRole == 'Volunteer') {
-      body['motivation'] = _motivationController.text;
-    }
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
+  if (_nameController.text.isEmpty ||
+      _phoneController.text.isEmpty ||
+      _passwordController.text.isEmpty ||
+      _selectedGender == null ||
+      (_selectedRole == 'Client' && _birthDateController.text.isEmpty)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All required fields must be filled!')),
     );
-
-    if (response.statusCode == 201) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Success'),
-            content: const Text('User registered successfully!'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to register user: ${response.body}'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+    return;
   }
+
+  if (_passwordController.text != _confirmPasswordController.text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Passwords do not match!')),
+    );
+    return;
+  }
+
+  Map<String, dynamic> userData = {
+    'username': _nameController.text,
+    'phone': _phoneController.text,
+    'email': _emailController.text,
+    'gender': _selectedGender,
+    'password': _passwordController.text,
+    'role': _selectedRole,
+    'topics': _selectedTopics,
+  };
+
+  if (_selectedRole == 'Psychologist') {
+    userData['specialization'] = _specializationController.text;
+    userData['experience'] = _experienceController.text;
+    userData['birthDate'] = _birthDateController.text;
+  }
+
+  if (_selectedRole == 'Client') {
+    userData['birthDate'] = _birthDateController.text;
+  }
+
+  if (_selectedRole == 'Volunteer') {
+    userData['motivation'] = _motivationController.text;
+  }
+
+  final response = await http.post(
+    Uri.parse('http://10.0.2.2:3005/send-verification'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': _emailController.text}),
+  );
+
+  if (response.statusCode == 200) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EmailVerificationPage(
+          email: _emailController.text,
+          userData: userData,
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to send verification code: ${response.body}')),
+    );
+  }
+}
+
 
   Widget _buildTopicSelector() {
     return Padding(
