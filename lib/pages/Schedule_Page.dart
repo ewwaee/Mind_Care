@@ -199,7 +199,7 @@ class _SchedulePageState extends State<SchedulePage> {
         DateFormat('dd MMM yyyy').format(DateTime.parse(slot['date']));
     final isBooked = slot['isBooked'] ?? false;
     return Card(
-      color: isBooked ? Colors.red.shade200 : Colors.green.shade200,
+      color: const Color(0xFF638195),
       child: ListTile(
         title: Text('$dateFormatted at ${slot['time']}'),
         subtitle: Text(isBooked ? 'Booked' : 'Available'),

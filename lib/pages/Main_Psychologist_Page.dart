@@ -5,8 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-
+import 'blogpage.dart';
 import 'Schedule_Page.dart';  // Импорт страницы расписания
+import 'PsychologistRequestsPage.dart';
 
 class MainPsychologistPage extends StatefulWidget {
   const MainPsychologistPage({super.key});
@@ -16,7 +17,7 @@ class MainPsychologistPage extends StatefulWidget {
 }
 
 class _MainPsychologistPageState extends State<MainPsychologistPage> {
-  String username = '';  // Изначально пустая строка
+  String username = '';
   List<Map<String, dynamic>> upcomingSessions = [];
   bool isLoadingSessions = true;
 
@@ -74,8 +75,6 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
   }
 
   void goToClientProfile(String clientId) {
-    // Здесь надо реализовать переход на профиль клиента
-    // Например, если есть страница ClientProfilePage:
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => ClientProfilePage(clientId: clientId)),
@@ -99,6 +98,7 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2F4179),
+              foregroundColor: Colors.white, // Делает текст на кнопке белым!
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -147,6 +147,14 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
             ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2F4179),
+              foregroundColor: Colors.white, // Белый текст!
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+            ),
             onPressed: client['_id'] != null ? () => goToClientProfile(client['_id']) : null,
             child: const Text('Profile'),
           ),
@@ -221,15 +229,22 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
               'Review client requests and manage consultations.',
               'View Requests',
                   () {
-                // Навигация к странице запросов
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PsychologistRequestsPage()),
+                );
               },
             ),
+
 
             buildActionCard(
               'Write articles and share your expertise.',
               'Write Article',
                   () {
-                // Навигация к редактору статей
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BlogPage()),
+                );
               },
             ),
 
@@ -254,14 +269,13 @@ class _MainPsychologistPageState extends State<MainPsychologistPage> {
   }
 }
 
-// Заглушка страницы профиля клиента — реализуй по своему
+// Заглушка страницы профиля клиента
 class ClientProfilePage extends StatelessWidget {
   final String clientId;
   const ClientProfilePage({super.key, required this.clientId});
 
   @override
   Widget build(BuildContext context) {
-    // Логика загрузки профиля клиента по clientId
     return Scaffold(
       appBar: AppBar(title: const Text('Client Profile')),
       body: Center(child: Text('Profile for client $clientId')),
