@@ -1,8 +1,7 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:flutter/services.dart';
-import 'VolunteerProfilePage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class VolunteerPage extends StatefulWidget {
   const VolunteerPage({super.key});
@@ -12,99 +11,79 @@ class VolunteerPage extends StatefulWidget {
 }
 
 class _VolunteerPageState extends State<VolunteerPage> {
-  File? selectedFile;
-  final TextEditingController motivationController = TextEditingController();
-  final TextEditingController universityController = TextEditingController();
-  final TextEditingController courseController = TextEditingController();
-  final TextEditingController majorController = TextEditingController();
+  String userName = '...';
+  bool isLoading = true;
 
-  Future<void> pickFile() async {
-    final result = await FilePicker.platform.pickFiles();
+  @override
+  void initState() {
+    super.initState();
+    fetchUserInfo();
+  }
 
-    if (result != null && result.files.single.path != null) {
+  Future<void> fetchUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+    final role = prefs.getString('role');
+    final token = prefs.getString('token');
+
+    String url = 'http://your-backend-url.com'; // ← замени на свой
+
+    switch (role) {
+      case 'Volunteer':
+        url += '/volunteer/$userId';
+        break;
+      case 'Client':
+        url += '/client/$userId';
+        break;
+      case 'Psychologist':
+        url += '/psychologist/$userId';
+        break;
+      default:
+        return;
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
       setState(() {
-        selectedFile = File(result.files.single.path!);
+        userName = data['username'];
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        userName = 'User';
+        isLoading = false;
       });
     }
   }
 
-  int countWords(String text) {
-    return text.trim().split(RegExp(r"\s+")).length;
-  }
-
-  void submitForm() {
-  if (countWords(motivationController.text) > 50) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Слишком много слов в мотивации")),
-    );
-    return;
-  }
-
-  if (selectedFile == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Пожалуйста, загрузите ID-карту")),
-    );
-    return;
-  }
-
-  // Переход на страницу профиля волонтера
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => VolunteerProfilePage(
-        name: "Иван Иванов", // Имя можно получать от пользователя
-        gender: "Мужской", // Здесь можно сделать выбор пола в будущем
-        email: "ivan@example.com", // Или взять с формы
-        organization: universityController.text,
-        documents: [selectedFile!.path.split('/').last],
-        events: const ["Благотворительный марафон", "Психологическая помощь детям"],
-        feedbacks: const ["Очень отзывчивый!", "Помог организовать ивент"],
-      ),
-    ),
-  );
-}
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Volunteer Registration")),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: ListView(
-          children: [
-            const Text("Upload your student ID card:"),
-            ElevatedButton(
-              onPressed: pickFile,
-              child: Text(selectedFile == null
-                  ? "Choose File"
-                  : "Selected: ${selectedFile!.path.split('/').last}"),
-            ),
-            const SizedBox(height: 20),
-            const Text("Enter your motivation and short info:"),
-            TextField(
-              controller: motivationController,
-              maxLines: 4,
-              decoration: InputDecoration(fillColor: Colors.blue[100], filled: true),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: universityController,
-              decoration: InputDecoration(labelText: "Your university", fillColor: Colors.blue[100], filled: true),
-            ),
-            TextField(
-              controller: courseController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(labelText: "Your course", fillColor: Colors.blue[100], filled: true),
-            ),
-            TextField(
-              controller: majorController,
-              decoration: InputDecoration(labelText: "Your major", fillColor: Colors.blue[100], filled: true),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(onPressed: submitForm, child: const Text("Sign Up")),
-          ],
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(radius: 24, child: Icon(Icons.person)),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Good morning, $userName!',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              // остальные виджеты...
+            ],
+          ),
         ),
       ),
     );
